@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "441773543598",
+    "project_id": "mynotes-flutter-project-timo",
+    "storage_bucket": "mynotes-flutter-project-timo.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:441773543598:android:766566db1a330e18b05d3f",
+        "android_client_info": {
+          "package_name": "com.timotiustech.mynotes"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "441773543598-3j91k01j5aemglb485ib8uf5nm4l254l.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB5M4EiJeEfXVLFYac7uA2WlTwvP-fTa4w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "441773543598-3j91k01j5aemglb485ib8uf5nm4l254l.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
