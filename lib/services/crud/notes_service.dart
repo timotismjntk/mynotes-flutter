@@ -10,12 +10,12 @@ class NotesService {
 
   List<DatabaseNote> _notes = [];
 
+  static final NotesService _shared = NotesService._sharedInstance();
+  NotesService._sharedInstance();
+  factory NotesService() => _shared;
+
   final _notesStreamController =
       StreamController<List<DatabaseNote>>.broadcast();
-
-  static final NotesService _shared = NotesService._shareInstance();
-  NotesService._shareInstance();
-  factory NotesService() => _shared;
 
   Stream<List<DatabaseNote>> get allNotes => _notesStreamController.stream;
 
@@ -83,7 +83,7 @@ class NotesService {
     );
 
     if (notes.isEmpty) {
-      throw CouldNotFindNotes();
+      throw CouldNotFindNote();
     } else {
       final note = DatabaseNote.fromRow(notes.first);
       _notes.removeWhere((note) => note.id == id);
@@ -110,7 +110,7 @@ class NotesService {
       where: 'id = ?',
       whereArgs: [id],
     );
-    if (deletedCount != 1) {
+    if (deletedCount == 0) {
       throw CouldNotDeleteNote();
     } else {
       _notes.removeWhere((note) => note.id == id);
@@ -122,7 +122,7 @@ class NotesService {
     await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
 
-    // make sure the user exists in the database with the correct id
+    // make sure owner exists in the database with the correct id
     final dbUser = await getUser(email: owner.email);
     if (dbUser != owner) {
       throw CouldNotFindUser();
@@ -142,6 +142,7 @@ class NotesService {
       text: text,
       isSyncedWithCloud: true,
     );
+
     _notes.add(note);
     _notesStreamController.add(_notes);
 
@@ -151,8 +152,10 @@ class NotesService {
   Future<DatabaseUser> getUser({required String email}) async {
     await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
+
     final results = await db.query(
       userTable,
+      limit: 1,
       where: 'email = ?',
       whereArgs: [email.toLowerCase()],
     );
@@ -195,9 +198,8 @@ class NotesService {
       where: 'email = ?',
       whereArgs: [email.toLowerCase()],
     );
-
     if (deletedCount != 1) {
-      throw CouldNotDeleteUSer();
+      throw CouldNotDeleteUser();
     }
   }
 
@@ -224,7 +226,7 @@ class NotesService {
     try {
       await open();
     } on DatabaseAlreadyOpenException {
-      // do nothing
+      // empty
     }
   }
 
@@ -237,7 +239,7 @@ class NotesService {
       final dbPath = join(docsPath.path, dbName);
       final db = await openDatabase(dbPath);
       _db = db;
-      // create user table
+      // create the user table
       await db.execute(createUserTable);
       // create note table
       await db.execute(createNoteTable);
@@ -276,6 +278,7 @@ class DatabaseNote {
   final int userId;
   final String text;
   final bool isSyncedWithCloud;
+
   DatabaseNote({
     required this.id,
     required this.userId,
@@ -292,7 +295,7 @@ class DatabaseNote {
 
   @override
   String toString() =>
-      'Note, ID = $id, userId = $userId, text = $text, isSyncedWithCloud = $isSyncedWithCloud';
+      'Note, ID = $id, userId = $userId, isSyncedWithCloud = $isSyncedWithCloud, text = $text';
 
   @override
   bool operator ==(covariant DatabaseNote other) => id == other.id;
@@ -301,7 +304,7 @@ class DatabaseNote {
   int get hashCode => id.hashCode;
 }
 
-const dbName = 'mynotes-flutter.db';
+const dbName = 'notes.db';
 const noteTable = 'note';
 const userTable = 'user';
 const idColumn = 'id';
@@ -311,7 +314,7 @@ const textColumn = 'text';
 const isSyncedWithCloudColumn = 'is_synced_with_cloud';
 const createUserTable = '''CREATE TABLE IF NOT EXISTS "user" (
         "id"	INTEGER NOT NULL,
-        "Field2"	TEXT NOT NULL UNIQUE,
+        "email"	TEXT NOT NULL UNIQUE,
         PRIMARY KEY("id" AUTOINCREMENT)
       );''';
 const createNoteTable = '''CREATE TABLE IF NOT EXISTS "note" (
@@ -319,6 +322,6 @@ const createNoteTable = '''CREATE TABLE IF NOT EXISTS "note" (
         "user_id"	INTEGER NOT NULL,
         "text"	TEXT,
         "is_synced_with_cloud"	INTEGER NOT NULL DEFAULT 0,
-        PRIMARY KEY("id" AUTOINCREMENT),
-        FOREIGN KEY("user_id") REFERENCES "user"("id")
+        FOREIGN KEY("user_id") REFERENCES "user"("id"),
+        PRIMARY KEY("id" AUTOINCREMENT)
       );''';
