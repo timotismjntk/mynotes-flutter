@@ -1,5 +1,3 @@
-import 'package:mynotes/services/crud/crud_exceptions.dart';
-
 class CloudStorageException implements Exception {
   const CloudStorageException();
 }
